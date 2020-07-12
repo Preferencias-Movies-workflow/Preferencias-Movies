@@ -8,6 +8,7 @@ const User = require("../models/Users")
 users.use(cors())
 process.env.SECRET_KEY = 'secret'
 
+//register
 users.post('/register',(req,res) => {
 // const today = new Date() 
 const userData = {
@@ -37,5 +38,46 @@ User.findOne({email : req.body.email}).then(user => {
 })
 })
 
+// login
+users.post('/login',(req,res) => {
+    User.findOne({
+        email:req.body.email
+    })
+    .then(user => {
+        if(user){
+            if(bcrypt.compareSync(req.body.password,user.password)){
+                //password match
+                const loginData = {
+                                _id: user._id,
+                                email : user.email,
+                                userName :user.userName,
+                                password :user.password,
+                                age:user.age
+                              }
+            let token = jwt.sign(loginData,process.env.SECRET_KEY,{
+                expiresIn: 1440
+            })  
+            
+            res.send(token) 
+        } else { 
+           //  Passwords don't match
+          res.json({ error: 'User does not exist' })
+        }
+      } else {
+        res.json({ error: 'User does not exist' })
+      }
+    })
+    .catch(err => {
+      res.send('error: ' + err)
+    })
+})
+ 
+
+
+
+
 module.exports = users
+
+
+
 
